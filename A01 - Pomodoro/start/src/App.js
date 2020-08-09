@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 
 function padTime(time) {
@@ -6,22 +6,42 @@ function padTime(time) {
 }
 
 export default function App() {
-  const [timeLeft, setTimeLeft] = useState(5);
+  const TIME = 25 * 60;
+  const [timeLeft, setTimeLeft] = useState(TIME);
   const [title, setTitle] = useState('Let the countdown begin!');
+  const [isRunning, setIsRunning] = useState(false);
+  const intervalRef = useRef(null);
 
   function startTimer() {
-    setInterval(() => {
+    if(intervalRef.current !== null) return;
+
+    setTitle("You're doing great!")
+    setIsRunning(true);
+    intervalRef.current = setInterval(() => {
       setTimeLeft((timeLeft) => {
         if (timeLeft >= 1) return timeLeft - 1;
 
-        //reset the timer
+        resetTimer();
         return 0;
       });
     }, 1000);
   }
 
   function stopTimer() {
-    clearInterval();
+    if(intervalRef.current === null) return;
+    
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setTitle('Keep it up!');
+    setIsRunning(false)
+  }
+
+  function resetTimer(){
+    setTitle('Ready to go another round?');
+    clearInterval(intervalRef.current)
+    intervalRef.current = null;
+    setTimeLeft(TIME);
+    setIsRunning(false);
   }
 
   const minutes = padTime(Math.floor(timeLeft / 60));
@@ -38,9 +58,9 @@ export default function App() {
       </div>
 
       <div className="buttons">
-        <button onClick={startTimer}>Start</button>
-        <button>Stop</button>
-        <button>Reset</button>
+        {!isRunning && <button onClick={startTimer}>Start</button>}
+        {isRunning && <button onClick={stopTimer}>Stop</button>}
+        {isRunning && <button onClick={resetTimer}>Reset</button>}
       </div>
     </div>
   );
